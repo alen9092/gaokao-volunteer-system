@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}高考志愿预测系统{% endblock %}
+{% block content %}
+
+{% if current_user.is_authenticated %}
+
+<!-- ===== Logged-in Dashboard ===== -->
+<div class="row mt-3 g-3">
+    <!-- 名师解惑 (left panel) -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2" style="border-bottom:1px solid var(--border-default);">
+                <div class="fi-box fi-teal" style="margin-bottom:0;width:32px;height:32px;border-radius:8px;font-size:.9rem;">
+                    <i class="bi bi-chat-quote"></i>
+                </div>
+                <div>
+                    <h5 style="font-weight:700;margin:0;font-size:.95rem;">名师解惑</h5>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-center text-center">
+                <div class="fi-box fi-teal mx-auto" style="width:64px;height:64px;border-radius:16px;font-size:2rem;">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+                <h5 style="font-weight:700;margin-top:16px;">名师解惑</h5>
+                <p style="color:var(--text-secondary);font-size:.9rem;max-width:300px;margin:8px auto;">
+                    关于专业选择、就业前景、院校对比，给你明确判断不模棱两可。
+                </p>
+                <a href="/qa" class="btn btn-primary btn-lg mt-2">
+                    <i class="bi bi-chat-quote me-2"></i> 进入名师解惑
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 智能预测 (right panel) -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2" style="border-bottom:1px solid var(--border-default);">
+                <div class="fi-box fi-green" style="margin-bottom:0;width:32px;height:32px;border-radius:8px;font-size:.9rem;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div>
+                    <h5 style="font-weight:700;margin:0;font-size:.95rem;">智能预测</h5>
+                    <small style="color:var(--text-tertiary);font-size:.78rem;">基于三年真实数据，冲稳保三档推荐</small>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-center text-center">
+                <div class="fi-box fi-green mx-auto" style="width:64px;height:64px;border-radius:16px;font-size:2rem;">
+                    <i class="bi bi-rocket-takeoff"></i>
+                </div>
+                <h5 style="font-weight:700;margin-top:16px;">2026 志愿预测</h5>
+                <p style="color:var(--text-secondary);font-size:.9rem;max-width:300px;margin:8px auto;">
+                    输入你的分数和位次，系统基于 2023-2025 三年专业录取数据，智能推荐冲、稳、保三档志愿方案。
+                </p>
+
+                <!-- Quick stats -->
+                <div class="row g-2 mt-2 mb-3" style="max-width:340px;margin:0 auto;">
+                    <div class="col-4">
+                        <div class="num-mono" style="font-size:1.4rem;color:var(--accent-green);">13万+</div>
+                        <small style="color:var(--text-tertiary);font-size:.7rem;">专业数据</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="num-mono" style="font-size:1.4rem;color:var(--accent-emerald);">3年</div>
+                        <small style="color:var(--text-tertiary);font-size:.7rem;">完整覆盖</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="num-mono" style="font-size:1.4rem;color:var(--accent-teal);">2100+</div>
+                        <small style="color:var(--text-tertiary);font-size:.7rem;">院校信息</small>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('simulation.simulate') }}" class="btn btn-primary btn-lg mt-2">
+                    <i class="bi bi-rocket-takeoff me-2"></i> 开始预测
+                    <span style="opacity:.7;font-weight:500;margin-left:6px;">（剩余 {{ current_user.credits }} 次）</span>
+                </a>
+                {% if current_user.credits < 1 %}
+                <small style="color:var(--accent-amber);margin-top:8px;">次数已用完，请邀请好友或充值获取次数</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features row -->
+<div class="row mt-3 g-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center py-3">
+                <div class="fi-box fi-emerald mx-auto" style="width:36px;height:36px;border-radius:8px;margin-bottom:8px;">
+                    <i class="bi bi-file-earmark-excel"></i>
+                </div>
+                <h6 style="font-weight:700;margin-bottom:4px;">一键导出 Excel</h6>
+                <small style="color:var(--text-secondary);">勾选心仪专业，导出表格方便与家人讨论</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center py-3">
+                <div class="fi-box fi-amber mx-auto" style="width:36px;height:36px;border-radius:8px;margin-bottom:8px;">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <h6 style="font-weight:700;margin-bottom:4px;">充值兑换</h6>
+                <small style="color:var(--text-secondary);">购买卡密，输入即可到账次数</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center py-3">
+                <div class="fi-box fi-rose mx-auto" style="width:36px;height:36px;border-radius:8px;margin-bottom:8px;">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h6 style="font-weight:700;margin-bottom:4px;">邀请好友</h6>
+                <small style="color:var(--text-secondary);">分享邀请码，双方各得 3 次免费模拟</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<!-- ===== Landing / Auth Gateway ===== -->
+<div class="row justify-content-center align-items-center" style="min-height:70vh;">
+    <div class="col-lg-10">
+        <div class="hero text-center" style="padding:64px 48px;">
+            <div class="logo-mark mx-auto mb-4" style="width:56px;height:56px;border-radius:14px;font-size:1.5rem;">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <h1 class="display-lg mb-2">
+                <span class="text-gradient">致远</span>
+            </h1>
+            <p style="font-size:1.1rem;color:var(--text-secondary);max-width:500px;margin:16px auto 0;">
+                基于 2023-2025 三年真实专业录取数据，<br>冲稳保三档智能推荐，让每一分都有价值。
+            </p>
+
+            <!-- Stats -->
+            <div class="row mt-4 g-3 justify-content-center">
+                <div class="col-auto">
+                    <div class="num-mono" style="font-size:1.5rem;color:var(--accent-green);">13万+</div>
+                    <small style="color:var(--text-tertiary);">专业录取数据</small>
+                </div>
+                <div class="col-auto" style="color:var(--border-strong);font-size:1.5rem;">·</div>
+                <div class="col-auto">
+                    <div class="num-mono" style="font-size:1.5rem;color:var(--accent-emerald);">3年</div>
+                    <small style="color:var(--text-tertiary);">完整年份覆盖</small>
+                </div>
+                <div class="col-auto" style="color:var(--border-strong);font-size:1.5rem;">·</div>
+                <div class="col-auto">
+                    <div class="num-mono" style="font-size:1.5rem;color:var(--accent-teal);">2100+</div>
+                    <small style="color:var(--text-tertiary);">院校信息</small>
+                </div>
+                <div class="col-auto" style="color:var(--border-strong);font-size:1.5rem;">·</div>
+                <div class="col-auto">
+                    <div class="num-mono" style="font-size:1.5rem;color:var(--accent-amber);">名师解惑</div>
+                    <small style="color:var(--text-tertiary);">专业分析</small>
+                </div>
+            </div>
+
+            <div class="hero-actions justify-content-center mt-4">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-xl">
+                    免费注册
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-xl">
+                    登录
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}{% endblock %}

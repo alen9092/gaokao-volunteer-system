@@ -1,0 +1,8 @@
+flask==3.1.0
+flask-login==0.6.3
+flask-wtf==1.2.2
+flask-limiter==3.10.1
+sqlalchemy==2.0.36
+bcrypt==4.2.1
+openpyxl==3.1.5
+requests==2.32.3

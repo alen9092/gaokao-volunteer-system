@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}注册{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        <div class="text-center mb-4">
+            <h2 style="font-weight:800;letter-spacing:-.03em;">创建账号</h2>
+            <p style="color:var(--text-secondary);">注册即送 <strong style="color:var(--accent-emerald);">5 次</strong> 免费模拟</p>
+        </div>
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">用户名 <span style="color:var(--accent-rose);">*</span></label>
+                        <input type="text" name="username" class="form-control form-control-lg" required minlength="2">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">密码 <span style="color:var(--accent-rose);">*</span></label>
+                        <input type="password" name="password" class="form-control form-control-lg" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">手机号 <span style="color:var(--accent-rose);">*</span></label>
+                        <input type="text" name="phone" class="form-control form-control-lg" required minlength="11" maxlength="11" pattern="\d{11}" placeholder="请输入11位手机号">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">邀请码（可选）</label>
+                        <input type="text" name="invite_code" class="form-control" placeholder="输入好友的邀请码，双方各得3次">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">注册（送5次免费模拟）</button>
+                </form>
+                <p class="text-center mt-3 mb-0" style="font-size:.9rem;">
+                    <a href="{{ url_for('auth.login') }}" style="color:var(--text-secondary);text-decoration:none;">已有账号？<span style="color:var(--accent-cyan);font-weight:600;">登录</span></a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

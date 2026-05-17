@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Database
+instance/gaokao.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
+
+# Sensitive
+*.xlsx
+*.xls
+*.csv

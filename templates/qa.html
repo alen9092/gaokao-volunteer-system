@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}名师解惑{% endblock %}
+{% block content %}
+
+<div class="row mt-3 g-3">
+    <!-- Main chat area -->
+    <div class="col-lg-8">
+        <div class="card" style="min-height:70vh;">
+            <div class="card-header d-flex align-items-center gap-2">
+                <div class="fi-box fi-teal" style="margin-bottom:0;width:32px;height:32px;border-radius:8px;font-size:.9rem;">
+                    <i class="bi bi-chat-quote"></i>
+                </div>
+                <div>
+                    <h5 style="font-weight:700;margin:0;font-size:.95rem;">名师解惑</h5>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="chat-container flex-grow-1" id="chatBox" style="height:480px;">
+                    <div class="chat-msg assistant">
+                        <div class="bubble">我跟你说，选专业这事儿，别光听名字好听。先告诉我：你多少分？哪个省的？学的文科理科？家里做什么的？把这些搞清楚了，我帮你参谋参谋。</div>
+                    </div>
+                </div>
+                <div class="input-group mt-3">
+                    <input type="text" class="form-control form-control-lg" id="chatInput"
+                           placeholder="输入你的问题，比如：计算机和电子信息哪个更好就业？"
+                           onkeypress="if(event.key==='Enter')sendChat()">
+                    <button class="btn btn-primary px-4" onclick="sendChat()">
+                        <i class="bi bi-send me-1"></i> 发送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick actions -->
+        <div class="card mb-3">
+            <div class="card-header" style="font-weight:700;">快速提问</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-secondary text-start" onclick="quickAsk('计算机和电子信息哪个更好就业？')">
+                        <i class="bi bi-cpu me-1" style="color:var(--accent-teal);"></i> 计算机 vs 电子信息
+                    </button>
+                    <button class="btn btn-sm btn-secondary text-start" onclick="quickAsk('临床医学值得读吗？学医要多少年？')">
+                        <i class="bi bi-heart-pulse me-1" style="color:var(--accent-rose);"></i> 临床医学值不值得读
+                    </button>
+                    <button class="btn btn-sm btn-secondary text-start" onclick="quickAsk('文科生选什么专业好就业？')">
+                        <i class="bi bi-journal-text me-1" style="color:var(--accent-amber);"></i> 文科生选什么专业
+                    </button>
+                    <button class="btn btn-sm btn-secondary text-start" onclick="quickAsk('普通家庭孩子该选什么方向？')">
+                        <i class="bi bi-people me-1" style="color:var(--accent-green);"></i> 普通家庭怎么选方向
+                    </button>
+                    <button class="btn btn-sm btn-secondary text-start" onclick="quickAsk('AI时代哪些专业不会被取代？')">
+                        <i class="bi bi-robot me-1" style="color:var(--accent-teal);"></i> AI时代什么专业安全
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card">
+            <div class="card-header" style="font-weight:700;">小贴士</div>
+            <div class="card-body">
+                <small style="color:var(--text-secondary);line-height:1.8;">
+                    <p>提问时尽量提供：<br>
+                    <strong>分数</strong> + <strong>省份</strong> + <strong>科类</strong><br>
+                    这样能得到更精准的建议。</p>
+                    <p style="margin-bottom:0;">需要具体分数线数据？<br>试试 <a href="{{ url_for('simulation.simulate') }}" style="color:var(--accent-green);font-weight:600;">智能预测</a> 功能。</p>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var pollTimer = null;
+
+async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    appendMsg('user', msg);
+    input.value = '';
+    appendMsg('assistant', '思考中...', true);
+    scrollBottom();
+    try {
+        const resp = await fetch('/ai/ask', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
+            body: JSON.stringify({question: msg})
+        });
+        const data = await resp.json();
+        removeLastAssistant();
+        appendMsg('assistant', data.answer || '抱歉，暂时无法回答。');
+    } catch(e) {
+        removeLastAssistant();
+        appendMsg('assistant', '请求失败，请稍后再试。');
+    }
+    scrollBottom();
+}
+
+function quickAsk(q) {
+    document.getElementById('chatInput').value = q;
+    sendChat();
+}
+
+function appendMsg(role, text, isTemp) {
+    const box = document.getElementById('chatBox');
+    const cls = role === 'user' ? 'chat-msg user' : 'chat-msg assistant';
+    const color = isTemp ? 'color:var(--text-tertiary);' : '';
+    box.innerHTML += '<div class="' + cls + '"><div class="bubble" style="' + color + '">' + escapeHtml(text) + '</div></div>';
+}
+
+function removeLastAssistant() {
+    const bubbles = document.querySelectorAll('#chatBox .chat-msg.assistant');
+    if (bubbles.length) bubbles[bubbles.length - 1].remove();
+}
+
+function scrollBottom() {
+    const box = document.getElementById('chatBox');
+    box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+</script>
+{% endblock %}

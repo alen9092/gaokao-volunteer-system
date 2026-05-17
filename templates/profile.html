@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}个人中心{% endblock %}
+{% block content %}
+<div class="row mt-3 g-3">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body p-4">
+                <div class="avatar-circle">
+                    {{ current_user.username[0] | upper }}
+                </div>
+                <h5 style="font-weight:700;margin-top:12px;">{{ current_user.username }}</h5>
+                <p style="color:var(--text-tertiary);font-size:.85rem;">{{ current_user.phone or '' }}</p>
+
+                <div class="stat-card stat-green" style="text-align:center;margin-top:16px;">
+                    <div class="stat-label">剩余次数</div>
+                    <div class="stat-value">{{ current_user.credits }}</div>
+                </div>
+
+                <div style="background:rgba(45,140,74,.05);border:1px solid rgba(45,140,74,.12);border-radius:var(--radius);padding:16px;margin-top:16px;">
+                    <small style="color:var(--text-tertiary);">我的邀请码</small><br>
+                    <span style="font-size:1.3rem;font-weight:800;color:var(--accent-green);letter-spacing:2px;" id="inviteCode">{{ current_user.referral_code }}</span><br>
+                    <small style="color:var(--text-secondary);">分享给好友，对方注册后你 +3 次</small><br>
+                    <button class="btn btn-secondary btn-sm mt-2" onclick="navigator.clipboard.writeText('{{ current_user.referral_code }}');this.textContent='已复制';setTimeout(()=>this.textContent='复制邀请码',1500)">复制邀请码</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-people me-2" style="color:var(--accent-green);"></i>已邀请用户（{{ invitees|length }}人）
+            </div>
+            <div class="card-body p-0">
+                {% if invitees %}
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>用户名</th><th>注册时间</th></tr></thead>
+                    <tbody>
+                    {% for u in invitees %}
+                    <tr><td>{{ u.username }}</td><td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-3" style="color:var(--text-secondary);font-size:.85rem;">还没有邀请过用户，快去分享邀请码吧！</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2" style="color:var(--accent-green);"></i>积分记录
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>时间</th><th>变动</th><th>原因</th></tr></thead>
+                    <tbody>
+                    {% for t in transactions %}
+                    <tr>
+                        <td>{{ t.created_at.strftime('%m-%d %H:%M') }}</td>
+                        <td style="{% if t.amount > 0 %}color:var(--accent-emerald);font-weight:700;{% else %}color:var(--accent-rose);{% endif %}">
+                            {{ '+' if t.amount > 0 }}{{ t.amount }}
+                        </td>
+                        <td>
+                            {% if t.reason == 'register_bonus' %}注册赠送
+                            {% elif t.reason == 'referral' %}邀请用户 #{{ t.related_user_id }}
+                            {% elif t.reason == 'simulation' %}模拟消耗
+                            {% elif t.reason == 'admin_grant' %}管理员充值
+                            {% elif t.reason == 'recharge' %}充值到账
+                            {% else %}{{ t.reason }}{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

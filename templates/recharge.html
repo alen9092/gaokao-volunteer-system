@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}充值兑换{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4 g-3">
+
+    <div class="col-lg-5">
+        <div class="card card-accent-amber">
+            <div class="card-body p-4 text-center">
+                <div class="fi-box fi-amber mx-auto">
+                    <i class="bi bi-credit-card" style="font-size:1.6rem;"></i>
+                </div>
+                <h4 style="font-weight:700;margin-top:8px;">购买卡密</h4>
+                <p style="color:var(--text-secondary);font-size:.9rem;">扫码支付 &yen;{{ price }}，自动发放卡密</p>
+
+                <div class="btn-group mb-3" role="group">
+                    <button class="btn btn-sm" id="btnWechat" onclick="switchPay('wechat')" style="border:1px solid #07C160;color:#07C160;background:transparent;">微信</button>
+                    <button class="btn btn-sm" id="btnAlipay" onclick="switchPay('alipay')" style="border:1px solid #1677FF;color:#1677FF;background:transparent;">支付宝</button>
+                </div>
+                <div id="payWechat">
+                    <img src="/static/pay_wechat.png" alt="微信收款码" style="width:200px;height:200px;border-radius:12px;object-fit:contain;border:1px solid var(--border-default);">
+                </div>
+                <div id="payAlipay" style="display:none;">
+                    <img src="/static/pay_alipay.png" alt="支付宝收款码" style="width:200px;height:200px;border-radius:12px;object-fit:contain;border:1px solid var(--border-default);">
+                </div>
+
+                <button class="btn btn-primary btn-lg w-100 mt-3" onclick="createOrder()" id="btnCreate">
+                    生成订单
+                </button>
+
+                <div id="orderBox" style="display:none;">
+                    <div style="background:rgba(217,119,6,.06);border:1px solid rgba(217,119,6,.15);border-radius:10px;padding:12px;margin-top:12px;font-size:.85rem;text-align:left;">
+                        <span style="color:var(--text-secondary);">支付备注务必填写：</span>
+                        <code style="font-size:1rem;color:var(--accent-green);font-weight:700;font-family:var(--font-mono);" id="orderNo"></code>
+                    </div>
+                    <div id="orderPending" style="margin-top:8px;">
+                        <div class="spinner-border spinner-border-sm" style="color:var(--accent-green);"></div>
+                        <small style="color:var(--text-tertiary);margin-left:6px;">等待支付确认...</small>
+                    </div>
+                    <div id="orderDone" style="display:none;">
+                        <div style="background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.15);border-radius:10px;padding:16px;margin-top:12px;">
+                            <p style="font-size:.85rem;color:var(--accent-emerald);margin:0;">支付成功，卡密已生成</p>
+                            <code style="font-size:1.2rem;font-weight:700;color:var(--accent-green);letter-spacing:2px;font-family:var(--font-mono);" id="cardCode"></code>
+                        </div>
+                        <button class="btn btn-success btn-lg w-100 mt-2" onclick="redeemShownCard()">
+                            <i class="bi bi-gift me-1"></i> 一键兑换 +{{ credits }} 次
+                        </button>
+                        <p style="font-size:.8rem;color:var(--text-tertiary);margin-top:4px;">或复制卡密到右侧手动兑换</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mt-4 mt-lg-0">
+        <div class="card card-accent-emerald">
+            <div class="card-body p-4 text-center">
+                <div class="fi-box fi-emerald mx-auto">
+                    <i class="bi bi-gift" style="font-size:1.6rem;"></i>
+                </div>
+                <h4 style="font-weight:700;margin-top:8px;">兑换卡密</h4>
+                <p style="color:var(--text-secondary);font-size:.9rem;">输入卡密，即刻到账</p>
+                <div class="input-group input-group-lg mb-3">
+                    <input type="text" id="cardCodeInput" class="form-control text-center text-uppercase"
+                           placeholder="GK-XXXX-XXXX-XXXX" style="letter-spacing:2px;font-weight:600;font-family:var(--font-mono);"
+                           oninput="this.value=this.value.replace(/[^a-zA-Z0-9\-]/g,'').toUpperCase()">
+                    <button class="btn btn-primary px-4" id="btnRedeem" onclick="redeemCard()">兑换</button>
+                </div>
+                <div id="redeemResult"></div>
+                <div class="hr"></div>
+                <small style="color:var(--text-tertiary);">联系管理员购买卡密</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if orders %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">充值记录</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>订单号</th><th>金额</th><th>卡密</th><th>状态</th><th>时间</th></tr></thead>
+                    <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><small>{{ o.order_no[-12:] }}</small></td>
+                        <td>&yen;{{ o.amount_yuan }}</td>
+                        <td>{% if o.transaction_id and o.status == 'completed' %}<code style="font-size:.78rem;color:var(--accent-green);">{{ o.transaction_id }}</code>{% else %}-{% endif %}</td>
+                        <td>{% if o.status == 'completed' %}<span class="badge bdg-emerald">已发放</span>{% else %}<span class="badge bdg-amber">待支付</span>{% endif %}</td>
+                        <td><small>{{ o.created_at.strftime('%m-%d %H:%M') if o.created_at else '' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var pollTimer = null;
+function switchPay(type) {
+    document.getElementById('payWechat').style.display = type === 'wechat' ? 'block' : 'none';
+    document.getElementById('payAlipay').style.display = type === 'alipay' ? 'block' : 'none';
+    document.getElementById('btnWechat').style.background = type === 'wechat' ? '#07C160' : 'transparent';
+    document.getElementById('btnWechat').style.color = type === 'wechat' ? '#fff' : '#07C160';
+    document.getElementById('btnAlipay').style.background = type === 'alipay' ? '#1677FF' : 'transparent';
+    document.getElementById('btnAlipay').style.color = type === 'alipay' ? '#fff' : '#1677FF';
+}
+function createOrder() {
+    fetch('/recharge/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token() }}'}
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            document.getElementById('btnCreate').style.display = 'none';
+            document.getElementById('orderBox').style.display = 'block';
+            document.getElementById('orderNo').textContent = data.order_no;
+            startPoll(data.order_no);
+        }
+    });
+}
+function startPoll(orderNo) {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function() {
+        fetch('/recharge/status/' + orderNo).then(r => r.json()).then(data => {
+            if (data.ok && data.status === 'completed' && data.card_code) {
+                clearInterval(pollTimer);
+                document.getElementById('orderPending').style.display = 'none';
+                document.getElementById('orderDone').style.display = 'block';
+                document.getElementById('cardCode').textContent = data.card_code;
+            }
+        });
+    }, 2000);
+}
+function redeemShownCard() {
+    const code = document.getElementById('cardCode').textContent.trim();
+    if (!code) return;
+    document.getElementById('cardCodeInput').value = code;
+    redeemCard();
+}
+function redeemCard() {
+    const code = document.getElementById('cardCodeInput').value.trim();
+    if (!code) return;
+    const btn = document.getElementById('btnRedeem');
+    btn.disabled = true; btn.textContent = '兑换中...';
+    fetch('/recharge/redeem', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token() }}'},
+        body: 'code=' + encodeURIComponent(code)
+    }).then(r => r.json()).then(data => {
+        const div = document.getElementById('redeemResult');
+        if (data.ok) {
+            div.innerHTML = '<div style="background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.15);color:var(--accent-emerald);padding:10px 14px;border-radius:10px;font-size:.85rem;font-weight:500;">' + data.msg + '</div>';
+            document.getElementById('cardCodeInput').value = '';
+            document.getElementById('orderDone').style.display = 'none';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            div.innerHTML = '<div style="background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.12);color:var(--accent-rose);padding:10px 14px;border-radius:10px;font-size:.85rem;font-weight:500;">' + data.msg + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '兑换';
+    }).catch(() => { btn.disabled = false; btn.textContent = '兑换'; });
+}
+</script>
+{% endblock %}
