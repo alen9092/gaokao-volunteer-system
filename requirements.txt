@@ -6,3 +6,4 @@ sqlalchemy==2.0.36
 bcrypt==4.2.1
 openpyxl==3.1.5
 requests==2.32.3
+gunicorn==23.0.0
